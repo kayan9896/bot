@@ -15,7 +15,7 @@ llm = OpenAI(
 )
 
 
-def chatbot(user_input):
+def chatbot(complaint):
     # defining a template
     template = """Question: {question}
     please provide step by step Answer:
@@ -23,7 +23,7 @@ def chatbot(user_input):
     # prompt = PromptTemplate(template=template, input_variables=["question"])
     # formated_prompt =prompt.format(question=str(user_input))
     # return llm(formated_prompt)
-    
+
     prompt = PromptTemplate(input_variables=["complaint"], template="I am a customer service representative. I received the following complaint: {complaint}. My response is:")
     # Create a language model chain with the defined prompt template
     chain = LLMChain(llm=llm, prompt=prompt)
