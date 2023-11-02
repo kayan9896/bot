@@ -2,6 +2,7 @@ import gradio as gr
 from langchain.prompts import PromptTemplate
 import os
 from langchain.llms import OpenAI
+from dotenv import load_dotenv
 
 load_dotenv('.env')
 k= os.getenv('key')
