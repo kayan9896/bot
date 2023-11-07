@@ -1,7 +1,7 @@
 import os
 
 # Import necessary modules from langchain
-from langchain import OpenAI
+from langchain.llms import OpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.document_loaders import PyPDFLoader
