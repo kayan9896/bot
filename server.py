@@ -3,6 +3,7 @@ import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import worker  # Import the worker module
+import llm
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
@@ -13,6 +14,10 @@ app.logger.setLevel(logging.ERROR)
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')  # Render the index.html template
+
+@app.route('/llm', methods=['GET'])
+def index():
+    llm.demo.launch()
 
 # Define the route for processing messages
 @app.route('/process-message', methods=['POST'])
