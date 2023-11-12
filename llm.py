@@ -1,4 +1,4 @@
-import gradio as gr
+
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 import os
@@ -29,5 +29,4 @@ def chatbot(complaint):
     # Create a language model chain with the defined prompt template
     chain = LLMChain(llm=llm, prompt=prompt)
     return chain.run(complaint)
-demo = gr.Interface(fn=chatbot, inputs="text", outputs="text")
-demo.launch()  
+  

@@ -15,11 +15,21 @@ app.logger.setLevel(logging.ERROR)
 def index():
     return render_template('index.html')  # Render the index.html template
 
-#@app.route('/llm', methods=['GET'])
-def index():
-    return render_template('index.html')
+@app.route('/llm', methods=['GET'])
+def llmhome():
+    return render_template('index3.html')
 
-#@app.route('/llm', methods=['POST'])
+@app.route('/llmp', methods=['POST']) 
+def process():
+    user_message = request.json['userMessage']  # Extract the user's message from the request
+    print('user_message', user_message)
+
+    bot_response = llm.chatbot(user_message)  # Process the user's message using the worker module
+
+    # Return the bot's response as JSON
+    return jsonify({
+        "botResponse": bot_response
+    }), 200   
 
 # Define the route for processing messages
 @app.route('/process-message', methods=['POST'])
