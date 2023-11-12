@@ -3,7 +3,7 @@ import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import worker  # Import the worker module
-import llm
+#import llm
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
@@ -15,9 +15,11 @@ app.logger.setLevel(logging.ERROR)
 def index():
     return render_template('index.html')  # Render the index.html template
 
-@app.route('/llm', methods=['GET'])
+#@app.route('/llm', methods=['GET'])
 def index():
-    llm.demo.launch()
+    return render_template('index.html')
+
+#@app.route('/llm', methods=['POST'])
 
 # Define the route for processing messages
 @app.route('/process-message', methods=['POST'])
@@ -68,7 +70,7 @@ def home():
     return render_template('index2.html')
 
 
-@app.route('/chatbot', methods=['POST'])
+@app.route('/2', methods=['POST'])
 def handle_prompt():
     data = request.get_data(as_text=True)
     data = json.loads(data)
