@@ -70,7 +70,7 @@ def home():
     return render_template('index2.html')
 
 
-@app.route('/2', methods=['POST'])
+@app.route('/chatbot', methods=['POST'])
 def handle_prompt():
     data = request.get_data(as_text=True)
     data = json.loads(data)
