@@ -1,4 +1,4 @@
-
+import langchain
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 import os
@@ -35,9 +35,9 @@ def coverletter(position, company, skills):
     input_variables=["position", "company", "skills"],
     template="Dear Hiring Manager,\n\nI am writing to apply for the {position} position at {company}. I have experience in {skills}.\n\nThank you for considering my application.\n\nSincerely,\n[Your Name]",
 )
+
     formatted_prompt = prompt.format(position=position, company=company, skills=skills)
-    print(formatted_prompt)
-    chain = LLMChain(llm=llm, prompt=formatted_prompt)
-    response=chain.run()
-    print(response)
+    response = llm(formatted_prompt)
     return response
+
+langchain.debug=True
