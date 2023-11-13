@@ -30,7 +30,7 @@ function hideUserLoadingAnimation() {
 
 
 const processUserMessage = async (userMessage) => {
-  let response = await fetch(baseUrl + "/llmp", {
+  let response = await fetch(window.location + "p", {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify({ userMessage: userMessage }),

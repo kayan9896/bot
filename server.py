@@ -31,8 +31,11 @@ def process():
         "botResponse": bot_response
     }), 200   
 
+@app.route('/cover', methods=['GET'])
+def coverhome():
+    return render_template('index3.html')
 
-@app.route('/cover', methods=['POST']) 
+@app.route('/coverp', methods=['POST']) 
 def coverprocess():
     user_message = request.json['userMessage']  # Extract the user's message from the request
     print('user_message', user_message)
