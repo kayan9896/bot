@@ -37,6 +37,7 @@ def coverletter(position, company, skills):
 )
     formatted_prompt = prompt.format(position=position, company=company, skills=skills)
     print(formatted_prompt)
-    response = llm(formatted_prompt)
+    chain = LLMChain(llm=llm, prompt=formatted_prompt)
+    response=chain.run()
     print(response)
     return response
