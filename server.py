@@ -33,7 +33,7 @@ def process():
 
 
 @app.route('/cover', methods=['POST']) 
-def process():
+def coverprocess():
     user_message = request.json['userMessage']  # Extract the user's message from the request
     print('user_message', user_message)
     (p,c,s) = user_message.split(',')
