@@ -31,6 +31,19 @@ def process():
         "botResponse": bot_response
     }), 200   
 
+
+@app.route('/cover', methods=['POST']) 
+def process():
+    user_message = request.json['userMessage']  # Extract the user's message from the request
+    print('user_message', user_message)
+    (p,c,s) = user_message.split(',')
+    bot_response = llm.coverletter(p,c,s)  # Process the user's message using the worker module
+
+    # Return the bot's response as JSON
+    return jsonify({
+        "botResponse": bot_response
+    }), 200 
+
 # Define the route for processing messages
 @app.route('/process-message', methods=['POST'])
 def process_message_route():

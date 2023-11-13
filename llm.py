@@ -29,4 +29,12 @@ def chatbot(complaint):
     # Create a language model chain with the defined prompt template
     chain = LLMChain(llm=llm, prompt=prompt)
     return chain.run(complaint)
-  
+
+def coverletter(position, company, skills):
+    prompt = PromptTemplate(
+    input_variables=["position", "company", "skills"],
+    template="Dear Hiring Manager,\n\nI am writing to apply for the {position} position at {company}. I have experience in {skills}.\n\nThank you for considering my application.\n\nSincerely,\n[Your Name]",
+)
+    formatted_prompt = prompt.format(position=position, company=company, skills=skills)
+    response = llm(formatted_prompt)
+    return response
