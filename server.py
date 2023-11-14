@@ -48,11 +48,11 @@ def coverprocess():
     }), 200 
 
 @app.route('/historical', methods=['GET'])
-def coverhome():
+def historicalhome():
     return render_template('index3.html')
 
 @app.route('/historicalp', methods=['POST']) 
-def coverprocess():
+def historicalprocess():
     user_message = request.json['userMessage']  # Extract the user's message from the request
     print('user_message', user_message)
     bot_response,his = llm.respond(user_message)# Process the user's message using the worker module
