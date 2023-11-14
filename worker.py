@@ -1,7 +1,7 @@
 import os
 
 # Import necessary modules from langchain
-from langchain import OpenAI
+from langchain.llms import OpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.document_loaders import PyPDFLoader
@@ -11,7 +11,7 @@ from langchain.vectorstores import Chroma
 
 # Load environment variables
 load_dotenv('.env')
-k= os.getenv('OPENAI_KEY')
+k= os.getenv('key')
 
 # Initialize global variables
 conversation_retrieval_chain = None
@@ -23,11 +23,10 @@ llm_embeddings = None
 def init_llm():
     global llm, llm_embeddings
     # Initialize the language model with the OpenAI API key
-    api_key=k
 
-    llm = OpenAI(model_name="text-davinci-003", openai_api_key=api_key)
+    llm = OpenAI(model_name="text-davinci-003", openai_api_key=k)
     # Initialize the embeddings for the language model
-    llm_embeddings = OpenAIEmbeddings(openai_api_key = api_key)
+    llm_embeddings = OpenAIEmbeddings(openai_api_key = k)
 
 # Function to process a PDF document
 def process_document(document_path):

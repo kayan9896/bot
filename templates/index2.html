@@ -26,9 +26,20 @@
         <div class="chat-header">
           <h1>My LLM</h1>
         </div>
-        <div class="header-sub-text">
-          <p>Copyright © JC 2023 - Created by JC with <a class="purple">❤</a></p>
-        </div>
+        <div>
+          <select id="sel" onchange="javascript:handleSelect(this)">            
+      <option value="/2">2</option>
+      <option value="/llm">llm</option>
+      <option value="/cover">cover</option>
+      <option value="/">page4</option>
+      </select>
+      </div>
+      <script type="text/javascript">
+          var urlmenu = document.getElementById('sel');
+          urlmenu.onchange = function() {
+            window.location = baseUrl+this.options[this.selectedIndex].value;
+          };
+        </script>
 
         <div class="spacer" id="messages-container"></div>
         

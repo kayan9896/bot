@@ -3,6 +3,7 @@ import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import worker  # Import the worker module
+import llm
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
@@ -13,6 +14,38 @@ app.logger.setLevel(logging.ERROR)
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')  # Render the index.html template
+
+@app.route('/llm', methods=['GET'])
+def llmhome():
+    return render_template('index3.html')
+
+@app.route('/llmp', methods=['POST']) 
+def process():
+    user_message = request.json['userMessage']  # Extract the user's message from the request
+    print('user_message', user_message)
+
+    bot_response = llm.chatbot(user_message)  # Process the user's message using the worker module
+
+    # Return the bot's response as JSON
+    return jsonify({
+        "botResponse": bot_response
+    }), 200   
+
+@app.route('/cover', methods=['GET'])
+def coverhome():
+    return render_template('index3.html')
+
+@app.route('/coverp', methods=['POST']) 
+def coverprocess():
+    user_message = request.json['userMessage']  # Extract the user's message from the request
+    print('user_message', user_message)
+    (p,c,s) = user_message.split(',')
+    bot_response = llm.coverletter(p,c,s)  # Process the user's message using the worker module
+
+    # Return the bot's response as JSON
+    return jsonify({
+        "botResponse": bot_response
+    }), 200 
 
 # Define the route for processing messages
 @app.route('/process-message', methods=['POST'])
