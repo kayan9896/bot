@@ -94,7 +94,7 @@ from langchain.agents import load_tools
 from langchain.agents import initialize_agent
 def google(txt):
 # Equipting the agent with some tools
-    tools = load_tools([ "google-search", "wikipedia","requests_all","human"], llm=llm)
+    tools = load_tools([ "ddg-search", "wikipedia","requests_all","human"], llm=llm)
 
 # Defining the agent
     agent = initialize_agent(tools, llm=llm, agent="zero-shot-react-description", verbose=True)
