@@ -89,3 +89,13 @@ def respond(message):
     chat_history.append((message, bot_message))  # Append the user's message and the bot's response to the chat history
     time.sleep(1)  # Pause for a moment
     return bot_message, chat_history  # Return the updated chat history
+
+from langchain.agents import load_tools
+from langchain.agents import initialize_agent
+def google(txt):
+# Equipting the agent with some tools
+    tools = load_tools([ "llm-math", "python_repl","requests_all","human"], llm=llm)
+
+# Defining the agent
+    agent = initialize_agent(tools, llm=llm, agent="zero-shot-react-description", verbose=True)
+    agent.run("create simple matplotlib showing sin function and plot it")

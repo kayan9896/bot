@@ -47,6 +47,37 @@ def coverprocess():
         "botResponse": bot_response
     }), 200 
 
+@app.route('/historical', methods=['GET'])
+def historicalhome():
+    return render_template('index3.html')
+
+@app.route('/historicalp', methods=['POST']) 
+def historicalprocess():
+    user_message = request.json['userMessage']  # Extract the user's message from the request
+    print('user_message', user_message)
+    bot_response,his = llm.respond(user_message)# Process the user's message using the worker module
+
+    # Return the bot's response as JSON
+    return jsonify({
+        "botResponse": bot_response
+    }), 200 
+
+@app.route('/goo', methods=['GET'])
+def google():
+    return render_template('index3.html')
+
+@app.route('/goop', methods=['POST']) 
+def googleprocess():
+    user_message = request.json['userMessage']  # Extract the user's message from the request
+    print('user_message', user_message)
+    bot_response = llm.google(user_message)# Process the user's message using the worker module
+
+    # Return the bot's response as JSON
+    return jsonify({
+        "botResponse": bot_response
+    }), 200 
+
+
 # Define the route for processing messages
 @app.route('/process-message', methods=['POST'])
 def process_message_route():
