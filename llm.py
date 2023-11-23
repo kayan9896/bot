@@ -98,4 +98,4 @@ def google(txt):
 
 # Defining the agent
     agent = initialize_agent(tools, llm=llm, agent="zero-shot-react-description", verbose=True)
-    agent.run(txt)
+    return agent.run(txt)

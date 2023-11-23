@@ -6,3 +6,5 @@ pdf2image
 tiktoken
 chromadb
 pypdf
+duckduckgo-search
+wikipedia
