@@ -6,5 +6,6 @@ ibmcloud ce application create --name demo1 --image us.icr.io/${SN_ICR_NAMESPACE
 
 
 
-https://demo2.1bm610m2vwx9.us-south.codeengine.appdomain.cloud
+
+https://demo1.1bnvewb2s3qc.us-south.codeengine.appdomain.cloud/
                             
