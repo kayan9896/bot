@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import worker  # Import the worker module
 import llm
+import requests
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
@@ -53,13 +54,15 @@ def historicalhome():
 
 @app.route('/historicalp', methods=['POST']) 
 def historicalprocess():
-    user_message = request.json['userMessage']  # Extract the user's message from the request
-    print('user_message', user_message)
-    bot_response,his = llm.respond(user_message)# Process the user's message using the worker module
-
-    # Return the bot's response as JSON
+    message = request.json['userMessage']  # Extract the user's message from the request
+    print('user_message', message)
+    headers = {Authorization: "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJndXBlZGlsaUBjbG91dC53aWtpIiwiZW1haWxfdmVyaWZpZWQiOnRydWV9LCJodHRwczovL2FwaS5vcGVuYWkuY29tL2F1dGgiOnsicG9pZCI6Im9yZy1BeFFoVUFzd3ZBaW9JWFR0TGF0MGk1b1QiLCJ1c2VyX2lkIjoidXNlci1rcXZtRkxyT09QdjE0RU1yakVkNHZ3Nk4ifSwiaXNzIjoiaHR0cHM6Ly9hdXRoMC5vcGVuYWkuY29tLyIsInN1YiI6ImF1dGgwfDY1MzJmNTE3YmNkZTVhZjdjZDQxOWExMiIsImF1ZCI6WyJodHRwczovL2FwaS5vcGVuYWkuY29tL3YxIiwiaHR0cHM6Ly9vcGVuYWkub3BlbmFpLmF1dGgwYXBwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE3MDQ2MTA2MjcsImV4cCI6MTcwNTQ3NDYyNywiYXpwIjoiVGRKSWNiZTE2V29USHROOTVueXl3aDVFNHlPbzZJdEciLCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIG1vZGVsLnJlYWQgbW9kZWwucmVxdWVzdCBvcmdhbml6YXRpb24ucmVhZCBvcmdhbml6YXRpb24ud3JpdGUgb2ZmbGluZV9hY2Nlc3MifQ.LOOQm2MdEOirdbTyUvzu41SAmHeReRHVjO8luGZLG-1mdk5YqJlQaAjdt_ijojG4wNvLb8bP_VPPsjz8b4RSF96tXeQoGy0-ojMvfKs88WMVFlJIEziMDPsvDN8Lz8_Xii0D4pT7mUAUJ3RSgY9UQo2iq7gxNN3M8jg4_I_3XvfJxInRsv1j1jY7c9IHX06GZN_Z4kGCnKGcV-bxLd3pdhrpVaWCOz75hsjk4yqHYvgwGfleaT3nb6Q6NhYcGLsimsW1rvhx6vF8iwfpw1mjKjBwaXa3Ou2ij5NKhVMIbXujmpnHKEQX5X8gapZeXimoNrU4Yeqnv9eRJWbp0muhzA",
+         "Content-Type": "application/json"}
+    data={"action":"next","messages":[{"id":"aaa2f527-fe5d-4dd5-a623-e363ffac5b41","author":{"role":"user"},"content":{"content_type":"text","parts":[message]},"metadata":{}}],"conversation_id":"0fe72a09-94a1-4816-9bfa-a5e73e85b163","parent_message_id":"af0f9497-73f4-4a0a-9717-77db9d257079","model":"gpt-3.5-turbo","timezone_offset_min":480,"suggestions":[],"history_and_training_disabled":false,"arkose_token":null,"conversation_mode":{"kind":"primary_assistant"},"force_paragen":false,"force_rate_limit":false}
+    response = requests.post("https://chat.openai.com/backend-api/conversation", headers=headers, json=data)
+    print(response)
     return jsonify({
-        "botResponse": bot_response
+        "botResponse": response
     }), 200 
 
 @app.route('/goo', methods=['GET'])
