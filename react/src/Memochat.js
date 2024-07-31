@@ -8,7 +8,7 @@ export default function Memochat({link}) {
     async function fetchData(message) {
         try{
         let response = await fetch(link+'historicalp',{
-        method: 'GET',
+        method: 'POST',
         headers: {Accept: "application/json", "Content-Type": "application/json"},
         body: JSON.stringify({userMessage:message})
         });

@@ -38,9 +38,11 @@ body{
 }
 
 .message-box {
+  font-size: 16px;
   padding: 12px;
   border-radius: 15px;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
   position: relative;
   background-color: #efefef;
   min-width: 26px;
@@ -52,6 +54,7 @@ body{
 }
 
 .message-box.my-text {
+  font-size: 16px;
   background-color: #e7f9d8;
   border-radius: 15px;
   border-top-right-radius: 0;

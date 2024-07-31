@@ -9,7 +9,7 @@ import Cover from './Cover';
 import Code from './Code';
 
 function App() {
-  let uri='https://xogan81833-8000.theiadockernext-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/'
+  let uri='https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/'
   return (
     <div className="App">
       <div className="App-header">
