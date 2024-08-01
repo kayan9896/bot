@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 #import worker  # Import the worker module
@@ -87,20 +88,40 @@ def google():
 def googleprocess():
     user_message = request.json['userMessage']  # Extract the user's message from the request
     print('user_message', user_message)
+    search=requests.get(f'https://serpapi.com/search.json?engine=google&q={user_message}&api_key=a5f61cdd8578c66b218fa0e2b8c30fdd708274e1d4843dd3937e0c10414828c1')
+    res=search.content.decode('utf-8')
+    print(res)
+    redict=json.loads(res)
+    unwant=['search_metadata','search_parameters','search_information','pagination','serpapi_pagination']
+    for k in unwant:
+        redict.pop(k)
+    
+    def remove_urls(data):
+        try:
+            if isinstance(data, list):
+                return [remove_urls(item) for item in data]
+            tmp={}
+            for key in data:
+                if isinstance(data[key], str) and ('http://' in data[key] or 'https://' in data[key]): 
+                    continue
+                
+                tmp[key]=remove_urls(data[key])
+            return tmp
+        except TypeError:
+            return data
+    goo=remove_urls(redict)
+    goosearch=json.dumps(goo)
+
     headers = {"Authorization": "Bearer 4de76c8205114bccb723bb3923f674e5",
          "Content-Type": "application/json"}
     data={"model": "gpt-3.5-turbo",
-    "messages": [
-        {
-            "role": "user",
-            "content": user_message
-        },
-    ],}
+    "messages": [{"role": "user", "content": f'{user_message}\n online search result:\n {goosearch}'}]}
     response = requests.post("https://api.aimlapi.com/chat/completions", headers=headers, json=data)
     res=response.content.decode('utf-8')
+    print(res)
     redict=json.loads(res)
     bot_response=redict['choices'][0]['message']['content']
-    
+
     # Return the bot's response as JSON
     return jsonify({
         "botResponse": bot_response
