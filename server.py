@@ -5,6 +5,8 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 #import worker  # Import the worker module
 #import llm
+from PyPDF2 import PdfReader
+import io
 import requests
 
 # Initialize Flask app and CORS
@@ -120,49 +122,82 @@ def googleprocess():
     res=response.content.decode('utf-8')
     print(res)
     redict=json.loads(res)
-    bot_response=redict['choices'][0]['message']['content']
+    bot_response=redict['choices'][0]['message']
 
     # Return the bot's response as JSON
     return jsonify({
-        "botResponse": bot_response
+        "botResponse": bot_response['content']
     }), 200 
 
-
+pages = []
 # Define the route for processing messages
 @app.route('/process-message', methods=['POST'])
 def process_message_route():
-    user_message = request.json['userMessage']  # Extract the user's message from the request
-    print('user_message', user_message)
-
-    bot_response = worker.process_prompt(user_message)  # Process the user's message using the worker module
-
+    message = request.json['userMessage']  # Extract the user's message from the request
+    chat_history.append({"role": "user", "content": message})
+    headers = {"Authorization": "Bearer 4de76c8205114bccb723bb3923f674e5",
+        "Content-Type": "application/json"}
+    data={"model": "gpt-3.5-turbo",
+    "messages": chat_history[-8:] if len(chat_history)<8 else chat_history[:1]+chat_history[-5:]}
+    response = requests.post("https://api.aimlapi.com/chat/completions", headers=headers, json=data)
+    res=response.content.decode('utf-8')
+    print(res)
+    redict=json.loads(res)
+    bot_response=redict['choices'][0]['message']
+    chat_history.append(bot_response)
+    print(chat_history)
     # Return the bot's response as JSON
     return jsonify({
-        "botResponse": bot_response
+        "botResponse": bot_response['content']
     }), 200
 
 # Define the route for processing documents
 @app.route('/process-document', methods=['POST'])
-def process_document_route():
-    # Check if a file was uploaded
-    if 'file' not in request.files:
-        return jsonify({
-            "botResponse": "It seems like the file was not uploaded correctly, can you try "
-                           "again. If the problem persists, try using a different file"
-        }), 400
+def process_document():
+    try:
+        # Check if the file is present in the request
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
 
-    file = request.files['file']  # Extract the uploaded file from the request
+        file = request.files['file']
+        # Check if the file is PDF
+        if file.filename.rsplit('.', 1)[1] != 'pdf':
+            return jsonify({'error': 'Invalid file format'}), 400
 
-    file_path = file.filename  # Define the path where the file will be saved
-    file.save(file_path)  # Save the file
+        # Save the uploaded file temporarily
+        file.save(file.filename)
 
-    worker.process_document(file_path)  # Process the document using the worker module
+        # Read the PDF file as text
+        with open(file.filename, 'rb') as f:
+            pdf = PdfReader(f)
+            for page in pdf.pages:
+                pages.append(page.extract_text())
+            text = "\n\n".join(pages)  
 
-    # Return a success message as JSON
-    return jsonify({
-        "botResponse": "Thank you for providing your PDF document. I have analyzed it, so now you can ask me any "
-                       "questions regarding it!"
-    }), 200
+        # Remove the temporary file
+        import os
+        os.remove(file.filename)
+        
+
+        chat_history.extend([{"role": "user", "content": f'Pdf:{pages[0]}'},{"role": "system", "content": "You are a file analyist. Only respond 'Uploaded! Ask me any questions about the file.' when you first receive the file"}])
+        headers = {"Authorization": "Bearer 4de76c8205114bccb723bb3923f674e5",
+            "Content-Type": "application/json"}
+        data={"model": "gpt-3.5-turbo",
+        "messages": chat_history}
+        response = requests.post("https://api.aimlapi.com/chat/completions", headers=headers, json=data)
+        res=response.content.decode('utf-8')
+        print(res)
+        redict=json.loads(res)
+        bot_response=redict['choices'][0]['message']
+        chat_history.append(bot_response)
+        print(chat_history)
+
+        # Return the extracted text in the response
+        return jsonify({'botResponse': bot_response['content']}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
+
 
 import json
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
