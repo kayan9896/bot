@@ -1,16 +1,18 @@
 import React from 'react'
 import Chatwindow from './Chatwindow'
 import {useState, useEffect} from 'react'
+import { v4 as uuidv4 } from 'uuid';
 import './App.css';
 
 export default function Memochat({link}) {
     const[list, setList] = useState([[true,'Ask me a question']]);
+    const[id,setId]=useState(uuidv4())
     async function fetchData(message) {
         try{
         let response = await fetch(link+'historicalp',{
-        method: 'GET',
+        method: 'POST',
         headers: {Accept: "application/json", "Content-Type": "application/json"},
-        body: JSON.stringify({userMessage:message})
+        body: JSON.stringify({userMessage:message, userId:id})
         });
         response= await response.json();
         return response;}catch(e){return{botResponse:'Please ask another question later. Error: '+e.message}}

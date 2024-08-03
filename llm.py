@@ -2,7 +2,7 @@ import langchain
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 import os
-from langchain.llms import OpenAI
+from openai import OpenAI
 from dotenv import load_dotenv
 from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferWindowMemory, CombinedMemory, ConversationSummaryMemory
@@ -13,10 +13,7 @@ k= os.getenv('key')
 os.environ["OPENAI_API_KEY"] = k
 
 # initialize the models
-llm = OpenAI(
-    model_name="text-davinci-003",
-    openai_api_key= k
-)
+llm = None
 
 
 def chatbot(complaint):
