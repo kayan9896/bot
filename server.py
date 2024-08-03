@@ -69,6 +69,7 @@ def historicalprocess():
     if user_id not in chat_history:
         chat_history[user_id] = []
     chat_history[user_id].append({"role": "user", "content": message})
+
     headers = {"Authorization": f'Bearer {key}',
          "Content-Type": "application/json"}
     data={"model": "gpt-3.5-turbo",
@@ -77,6 +78,7 @@ def historicalprocess():
     res=response.content.decode('utf-8')
     print(res)
     redict=json.loads(res)
+    
     bot_response=redict['choices'][0]['message']
     chat_history[user_id].append(bot_response)
     print(chat_history)
@@ -139,6 +141,7 @@ pages = []
 def process_message_route():
     message = request.json['userMessage']  # Extract the user's message from the request
     chat_history.append({"role": "user", "content": message})
+
     headers = {"Authorization": f'Bearer {key}',
         "Content-Type": "application/json"}
     data={"model": "gpt-3.5-turbo",
@@ -147,6 +150,7 @@ def process_message_route():
     res=response.content.decode('utf-8')
     print(res)
     redict=json.loads(res)
+
     bot_response=redict['choices'][0]['message']
     chat_history.append(bot_response)
     print(chat_history)
@@ -192,6 +196,7 @@ def process_document():
         res=response.content.decode('utf-8')
         print(res)
         redict=json.loads(res)
+
         bot_response=redict['choices'][0]['message']
         chat_history.append(bot_response)
         print(chat_history)
@@ -243,11 +248,12 @@ def handle_prompt():
 
 import time
 
-def cleanup_chat_history(max_age_in_seconds=60):  # Cleanup every hour
+def cleanup_chat_history(max_age_in_seconds=30):  # Cleanup every hour
     while True:
         time.sleep(max_age_in_seconds)
         current_time = time.time()
         for user_id, history in chat_history.items():
+            print(history)
             chat_history[user_id] = [
                 entry for entry in history 
                 if current_time - entry.get('timestamp', 0) < max_age_in_seconds
