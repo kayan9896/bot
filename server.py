@@ -248,7 +248,7 @@ def handle_prompt():
 
 import time
 
-def cleanup_chat_history(max_age_in_seconds=30):  # Cleanup every hour
+def cleanup_chat_history(max_age_in_seconds=3000):  # Cleanup every hour
     while True:
         time.sleep(max_age_in_seconds)
         current_time = time.time()
