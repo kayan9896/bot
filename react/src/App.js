@@ -7,6 +7,7 @@ import Memochat from './Memochat';
 import Pdf from './Pdf';
 import Cover from './Cover';
 import Code from './Code';
+import Speech from './Speech';
 
 function App() {
   let uri='https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/'
@@ -21,6 +22,7 @@ function App() {
           <Link className='btn' to='/code'>Convert your code</Link>
           <Link className='btn' to='/goo'>Latest knowledge</Link>
           <Link className='btn' to='/cover'>Write cover letter</Link>
+          <Link className='btn' to='/speech'>Speech</Link>
         </div>
         <Routes>
         <Route path='goo' element={<Goo link={uri}/>} />
@@ -28,6 +30,7 @@ function App() {
         <Route path='/' element={<Pdf link={uri}/>} />
         <Route path='/cover' element={<Cover/>} />
         <Route path='/code' element={<Code/>} />
+        <Route path='/speech' element={<Speech/>} />
         </Routes>
         </div>
       </div>

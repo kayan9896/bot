@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_file
 from flask_cors import CORS
 #import worker  # Import the worker module
 #import llm
@@ -41,6 +41,39 @@ def process():
     return jsonify({
         "botResponse": bot_response
     }), 200   
+
+@app.route('/audio/<string:filename>', methods=['GET'])
+def serve_audio(filename):
+    return send_file(f'./{filename}', mimetype='audio/wav')
+
+@app.route('/audio', methods=['POST'])
+def handle_audio_post():
+    print(request.files)
+    audio_file = request.files['audio']
+    if audio_file:
+        filename = 'recording.wav'  # You can customize the filename here if needed
+        audio_file.save(f'./{filename}')
+        
+        # Make a POST request to the Speech-to-Text API
+        audiourl = f'https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/audio/{filename}'
+        headers = {"Authorization": f'Bearer {key}',
+         "Content-Type": "application/json"}
+        data={"model": "#g1_nova-2-general",
+    "url": audiourl}
+        response = requests.post("https://api.aimlapi.com/stt",json=data,headers=headers)
+        # Parse the response from the Speech-to-Text API
+        try:
+            data = json.loads(response.text)
+            print(data)
+            transcript = data
+        except json.JSONDecodeError:
+            transcript = "Error decoding response from Speech-to-Text API"
+            print(f"Error: {response.text}")
+        
+        # Return the transcript
+        return jsonify(transcript=transcript)
+    else:
+        return jsonify(error="Audio file not found in the request"), 400  
 
 @app.route('/cover', methods=['GET'])
 def coverhome():
