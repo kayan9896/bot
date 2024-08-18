@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import io
 import requests
 from uuid import uuid4
+import time
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
@@ -56,16 +57,30 @@ def handle_audio_post():
         
         # Make a POST request to the Speech-to-Text API
         audiourl = f'https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/audio/{filename}'
-        headers = {"Authorization": f'Bearer {key}',
+        headers = {"Authorization": f'Bearer c5805622b2fe42f1888861484747a6ec',
          "Content-Type": "application/json"}
-        data={"model": "#g1_nova-2-general",
-    "url": audiourl}
-        response = requests.post("https://api.aimlapi.com/stt",json=data,headers=headers)
+        data={"audio_url": audiourl}
+        response = requests.post("https://api.assemblyai.com/v2/transcript",json=data,headers=headers)
+        id=response.json()['id']
+        text=[]
+        
+        while True:
+            response2=requests.get("https://api.assemblyai.com/v2/transcript/"+id,headers=headers)
+            res=json.loads(response2.text)
+            print(res)
+            if res['text']:
+                text.append(res['text'])
+            if res['status']=='completed': break
+            if res['status']=='error': 
+                text=['error']
+                break
+            else: time.sleep(3)
+        
         # Parse the response from the Speech-to-Text API
         try:
-            data = json.loads(response.text)
-            print(data)
-            transcript = data
+            text=''.join(text)
+            print(text)
+            transcript = text
         except json.JSONDecodeError:
             transcript = "Error decoding response from Speech-to-Text API"
             print(f"Error: {response.text}")
@@ -105,7 +120,7 @@ def historicalprocess():
 
     headers = {"Authorization": f'Bearer {key}',
          "Content-Type": "application/json"}
-    data={"model": "gpt-3.5-turbo",
+    data={"model": "gpt-4o",
     "messages": chat_history[user_id][-11:]}
     response = requests.post("https://api.aimlapi.com/chat/completions", headers=headers, json=data)
     res=response.content.decode('utf-8')
@@ -155,7 +170,7 @@ def googleprocess():
 
     headers = {"Authorization": f'Bearer {key}',
          "Content-Type": "application/json"}
-    data={"model": "gpt-3.5-turbo",
+    data={"model": "gpt-4o",
     "messages": [{"role": "user", "content": f'{user_message}\n online search result:\n {goosearch}'}]}
     response = requests.post(link, headers=headers, json=data)
     res=response.content.decode('utf-8')
@@ -177,7 +192,7 @@ def process_message_route():
 
     headers = {"Authorization": f'Bearer {key}',
         "Content-Type": "application/json"}
-    data={"model": "gpt-3.5-turbo",
+    data={"model": "gpt-4o",
     "messages": chat_history[-8:] if len(chat_history)<8 else chat_history[:1]+chat_history[-5:]}
     response = requests.post(link, headers=headers, json=data)
     res=response.content.decode('utf-8')
@@ -223,7 +238,7 @@ def process_document():
         chat_history.extend([{"role": "user", "content": f'Pdf:{pages[0]}'},{"role": "system", "content": "You are a file analyist. Only respond 'Uploaded! Ask me any questions about the file.' when you first receive the file"}])
         headers = {"Authorization": f'Bearer {key}',
             "Content-Type": "application/json"}
-        data={"model": "gpt-3.5-turbo",
+        data={"model": "gpt-4o",
         "messages": chat_history}
         response = requests.post(link, headers=headers, json=data)
         res=response.content.decode('utf-8')

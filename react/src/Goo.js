@@ -2,14 +2,17 @@ import React from 'react'
 import Chatwindow from './Chatwindow'
 import {useState, useEffect} from 'react'
 import './App.css';
+import { useAuth0 } from '@auth0/auth0-react';
 
 export default function Goo({link}) {
     const[list, setList] = useState([[true,'Ask me a question']]);
+    const { getAccessTokenSilently } = useAuth0();
     async function fetchData(message) {
         try{
+            const token = await getAccessTokenSilently();
         let response = await fetch(link+'goop',{
         method: 'POST',
-        headers: {Accept: "application/json", "Content-Type": "application/json"},
+        headers: {"Authorization": `Bearer ${token}`, Accept: "application/json", "Content-Type": "application/json"},
         body: JSON.stringify({userMessage:message})
         });
         response= await response.json();
