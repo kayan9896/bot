@@ -11,16 +11,28 @@ import io
 import requests
 from uuid import uuid4
 import time
+from jose import jwt
+from functools import wraps
+
+from authlib.integrations.flask_oauth2 import ResourceProtector
+from validator import Auth0JWTBearerTokenValidator
+
+require_auth = ResourceProtector()
+validator = Auth0JWTBearerTokenValidator(
+    "dev-4u2fhsz3qpodveaq.us.auth0.com",
+    "https://dev-4u2fhsz3qpodveaq.us.auth0.com/api/v2/"
+)
+require_auth.register_token_validator(validator)
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app.logger.setLevel(logging.ERROR)
 
-
 link="https://api.aimlapi.com/chat/completions"
 key=os.getenv('key')
 gookey=os.getenv('gookey')
+
 chat_history = {}
 # Define the route for the index page
 @app.route('/', methods=['GET'])
@@ -140,7 +152,9 @@ def historicalprocess():
 def google():
     return render_template('index3.html')
 
-@app.route('/goop', methods=['POST']) 
+
+@app.route("/goop", methods=["POST"])
+@require_auth(None)
 def googleprocess():
     user_message = request.json['userMessage']  # Extract the user's message from the request
     print('user_message', user_message)

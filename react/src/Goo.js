@@ -9,7 +9,8 @@ export default function Goo({link}) {
     const { getAccessTokenSilently } = useAuth0();
     async function fetchData(message) {
         try{
-            const token = await getAccessTokenSilently();
+            const token = await getAccessTokenSilently({"audience":'https://dev-4u2fhsz3qpodveaq.us.auth0.com/api/v2/'});
+            console.log(token)
         let response = await fetch(link+'goop',{
         method: 'POST',
         headers: {"Authorization": `Bearer ${token}`, Accept: "application/json", "Content-Type": "application/json"},
