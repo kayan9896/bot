@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_file
 from flask_cors import CORS
 #import worker  # Import the worker module
 #import llm
@@ -10,17 +10,119 @@ from dotenv import load_dotenv
 import io
 import requests
 from uuid import uuid4
+import time
+from jose import jwt
+from functools import wraps
+
+from authlib.integrations.flask_oauth2 import ResourceProtector
+from validator import Auth0JWTBearerTokenValidator
+import stripe
+
+stripe.api_key = "YOUR_STRIPE_SECRET_KEY"
+
+
+require_auth = ResourceProtector()
+validator = Auth0JWTBearerTokenValidator(
+    "dev-4u2fhsz3qpodveaq.us.auth0.com",
+    "https://dev-4u2fhsz3qpodveaq.us.auth0.com/api/v2/"
+)
+require_auth.register_token_validator(validator)
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app.logger.setLevel(logging.ERROR)
 
-
 link="https://api.aimlapi.com/chat/completions"
 key=os.getenv('key')
 gookey=os.getenv('gookey')
+
 chat_history = {}
+subscriptions = {}
+
+# Helper function to get the user ID from the token
+def get_user_id():
+    auth = request.headers.get("Authorization", None)
+    if not auth:
+        raise Exception("Authorization header is missing")
+
+    parts = auth.split()
+
+    if parts[0].lower() != "bearer":
+        raise Exception("Authorization header must start with Bearer")
+    elif len(parts) == 1:
+        raise Exception("Token not found")
+    elif len(parts) > 2:
+        raise Exception("Authorization header must be Bearer token")
+
+    token = parts[1]
+    unverified_header = jwt.get_unverified_header(token)
+    jsonurl = requests.get(f"https://dev-4u2fhsz3qpodveaq.us.auth0.com/.well-known/jwks.json")
+    jwks = jsonurl.json()
+    rsa_key = {}
+    for key in jwks["keys"]:
+        if key["kid"] == unverified_header["kid"]:
+            rsa_key = {
+                "kty": key["kty"],
+                "kid": key["kid"],
+                "use": key["use"],
+                "n": key["n"],
+                "e": key["e"]
+            }
+    if rsa_key:
+        payload = jwt.decode(
+            token,
+            rsa_key,
+            algorithms="RS256",
+            audience="https://dev-4u2fhsz3qpodveaq.us.auth0.com/api/v2/",
+            issuer=f"https://dev-4u2fhsz3qpodveaq.us.auth0.com/"
+        )
+        
+        
+    print(payload)
+    return payload["sub"]
+
+# Route to check if the user is subscribed
+@app.route("/check-subscription", methods=["GET"])
+@require_auth(None)
+def check_subscription():
+    user_id = get_user_id()
+    is_subscribed = subscriptions.get(user_id, False)
+    return jsonify({"isSubscribed": is_subscribed}) 
+
+# Route to handle payment processing 
+@app.route("/process-payment", methods=["POST"])
+@require_auth(None)
+def process_payment():
+    # Get the payment information from the request body
+    payment_info = request.get_json()
+    
+    # Validate the presence of necessary fields
+    required_fields = ['cardNumber', 'expiryDate', 'cvv']
+    if not all(field in payment_info for field in required_fields):
+        return jsonify({"success": False, "error": "Missing required fields"}), 400
+
+    # Format the expiry date for Stripe (Stripe expects it in separate month and year)
+    month, year = map(int, payment_info['expiryDate'].split('/'))
+    card_info = {
+        "number": payment_info['cardNumber'],
+        "exp_month": month,
+        "exp_year": year,
+        "cvc": payment_info['cvv'],
+    }
+    try:
+        # Assuming payment is successful
+        l=payment_info['cardNumber'][15]
+        
+        user_id = get_user_id()
+        if user_id not in subscriptions:
+            subscriptions[user_id]={}
+        subscriptions[user_id]["isSubscribed"] = True
+        return jsonify({"success": True})
+    except Exception as e:
+        print(e)
+        return jsonify({"success": False, "error": str(e)}), 400
+
 # Define the route for the index page
 @app.route('/', methods=['GET'])
 def index():
@@ -41,6 +143,53 @@ def process():
     return jsonify({
         "botResponse": bot_response
     }), 200   
+
+@app.route('/audio/<string:filename>', methods=['GET'])
+def serve_audio(filename):
+    return send_file(f'./{filename}', mimetype='audio/wav')
+
+@app.route('/audio', methods=['POST'])
+def handle_audio_post():
+    print(request.files)
+    audio_file = request.files['audio']
+    if audio_file:
+        filename = 'recording.wav'  # You can customize the filename here if needed
+        audio_file.save(f'./{filename}')
+        
+        # Make a POST request to the Speech-to-Text API
+        audiourl = f'https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/audio/{filename}'
+        headers = {"Authorization": f'Bearer c5805622b2fe42f1888861484747a6ec',
+         "Content-Type": "application/json"}
+        data={"audio_url": audiourl}
+        response = requests.post("https://api.assemblyai.com/v2/transcript",json=data,headers=headers)
+        id=response.json()['id']
+        text=[]
+        
+        while True:
+            response2=requests.get("https://api.assemblyai.com/v2/transcript/"+id,headers=headers)
+            res=json.loads(response2.text)
+            print(res)
+            if res['text']:
+                text.append(res['text'])
+            if res['status']=='completed': break
+            if res['status']=='error': 
+                text=['error']
+                break
+            else: time.sleep(3)
+        
+        # Parse the response from the Speech-to-Text API
+        try:
+            text=''.join(text)
+            print(text)
+            transcript = text
+        except json.JSONDecodeError:
+            transcript = "Error decoding response from Speech-to-Text API"
+            print(f"Error: {response.text}")
+        
+        # Return the transcript
+        return jsonify(transcript=transcript)
+    else:
+        return jsonify(error="Audio file not found in the request"), 400  
 
 @app.route('/cover', methods=['GET'])
 def coverhome():
@@ -72,7 +221,7 @@ def historicalprocess():
 
     headers = {"Authorization": f'Bearer {key}',
          "Content-Type": "application/json"}
-    data={"model": "gpt-3.5-turbo",
+    data={"model": "gpt-4o",
     "messages": chat_history[user_id][-11:]}
     response = requests.post("https://api.aimlapi.com/chat/completions", headers=headers, json=data)
     res=response.content.decode('utf-8')
@@ -92,8 +241,13 @@ def historicalprocess():
 def google():
     return render_template('index3.html')
 
-@app.route('/goop', methods=['POST']) 
+
+@app.route("/goop", methods=["POST"])
+@require_auth(None)
 def googleprocess():
+    user_id = get_user_id()
+    if not subscriptions.get(user_id, False):
+        return jsonify({"error": "Subscription required"}), 403
     user_message = request.json['userMessage']  # Extract the user's message from the request
     print('user_message', user_message)
     search=requests.get(f'https://serpapi.com/search.json?engine=google&q={user_message}&api_key={gookey}')
@@ -122,7 +276,7 @@ def googleprocess():
 
     headers = {"Authorization": f'Bearer {key}',
          "Content-Type": "application/json"}
-    data={"model": "gpt-3.5-turbo",
+    data={"model": "gpt-4o",
     "messages": [{"role": "user", "content": f'{user_message}\n online search result:\n {goosearch}'}]}
     response = requests.post(link, headers=headers, json=data)
     res=response.content.decode('utf-8')
@@ -144,7 +298,7 @@ def process_message_route():
 
     headers = {"Authorization": f'Bearer {key}',
         "Content-Type": "application/json"}
-    data={"model": "gpt-3.5-turbo",
+    data={"model": "gpt-4o",
     "messages": chat_history[-8:] if len(chat_history)<8 else chat_history[:1]+chat_history[-5:]}
     response = requests.post(link, headers=headers, json=data)
     res=response.content.decode('utf-8')
@@ -190,7 +344,7 @@ def process_document():
         chat_history.extend([{"role": "user", "content": f'Pdf:{pages[0]}'},{"role": "system", "content": "You are a file analyist. Only respond 'Uploaded! Ask me any questions about the file.' when you first receive the file"}])
         headers = {"Authorization": f'Bearer {key}',
             "Content-Type": "application/json"}
-        data={"model": "gpt-3.5-turbo",
+        data={"model": "gpt-4o",
         "messages": chat_history}
         response = requests.post(link, headers=headers, json=data)
         res=response.content.decode('utf-8')
