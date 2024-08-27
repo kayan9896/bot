@@ -16,6 +16,10 @@ from functools import wraps
 
 from authlib.integrations.flask_oauth2 import ResourceProtector
 from validator import Auth0JWTBearerTokenValidator
+import stripe
+
+stripe.api_key = "YOUR_STRIPE_SECRET_KEY"
+
 
 require_auth = ResourceProtector()
 validator = Auth0JWTBearerTokenValidator(
@@ -34,6 +38,91 @@ key=os.getenv('key')
 gookey=os.getenv('gookey')
 
 chat_history = {}
+subscriptions = {}
+
+# Helper function to get the user ID from the token
+def get_user_id():
+    auth = request.headers.get("Authorization", None)
+    if not auth:
+        raise Exception("Authorization header is missing")
+
+    parts = auth.split()
+
+    if parts[0].lower() != "bearer":
+        raise Exception("Authorization header must start with Bearer")
+    elif len(parts) == 1:
+        raise Exception("Token not found")
+    elif len(parts) > 2:
+        raise Exception("Authorization header must be Bearer token")
+
+    token = parts[1]
+    unverified_header = jwt.get_unverified_header(token)
+    jsonurl = requests.get(f"https://dev-4u2fhsz3qpodveaq.us.auth0.com/.well-known/jwks.json")
+    jwks = jsonurl.json()
+    rsa_key = {}
+    for key in jwks["keys"]:
+        if key["kid"] == unverified_header["kid"]:
+            rsa_key = {
+                "kty": key["kty"],
+                "kid": key["kid"],
+                "use": key["use"],
+                "n": key["n"],
+                "e": key["e"]
+            }
+    if rsa_key:
+        payload = jwt.decode(
+            token,
+            rsa_key,
+            algorithms="RS256",
+            audience="https://dev-4u2fhsz3qpodveaq.us.auth0.com/api/v2/",
+            issuer=f"https://dev-4u2fhsz3qpodveaq.us.auth0.com/"
+        )
+        
+        
+    print(payload)
+    return payload["sub"]
+
+# Route to check if the user is subscribed
+@app.route("/check-subscription", methods=["GET"])
+@require_auth(None)
+def check_subscription():
+    user_id = get_user_id()
+    is_subscribed = subscriptions.get(user_id, False)
+    return jsonify({"isSubscribed": is_subscribed}) 
+
+# Route to handle payment processing 
+@app.route("/process-payment", methods=["POST"])
+@require_auth(None)
+def process_payment():
+    # Get the payment information from the request body
+    payment_info = request.get_json()
+    
+    # Validate the presence of necessary fields
+    required_fields = ['cardNumber', 'expiryDate', 'cvv']
+    if not all(field in payment_info for field in required_fields):
+        return jsonify({"success": False, "error": "Missing required fields"}), 400
+
+    # Format the expiry date for Stripe (Stripe expects it in separate month and year)
+    month, year = map(int, payment_info['expiryDate'].split('/'))
+    card_info = {
+        "number": payment_info['cardNumber'],
+        "exp_month": month,
+        "exp_year": year,
+        "cvc": payment_info['cvv'],
+    }
+    try:
+        # Assuming payment is successful
+        l=payment_info['cardNumber'][15]
+        
+        user_id = get_user_id()
+        if user_id not in subscriptions:
+            subscriptions[user_id]={}
+        subscriptions[user_id]["isSubscribed"] = True
+        return jsonify({"success": True})
+    except Exception as e:
+        print(e)
+        return jsonify({"success": False, "error": str(e)}), 400
+
 # Define the route for the index page
 @app.route('/', methods=['GET'])
 def index():
@@ -156,6 +245,9 @@ def google():
 @app.route("/goop", methods=["POST"])
 @require_auth(None)
 def googleprocess():
+    user_id = get_user_id()
+    if not subscriptions.get(user_id, False):
+        return jsonify({"error": "Subscription required"}), 403
     user_message = request.json['userMessage']  # Extract the user's message from the request
     print('user_message', user_message)
     search=requests.get(f'https://serpapi.com/search.json?engine=google&q={user_message}&api_key={gookey}')
