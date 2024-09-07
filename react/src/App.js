@@ -12,7 +12,8 @@ import PaymentModal from './PaymentModal';
 
 function App() {
 
-  let uri='https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/'
+  let uri='https://bot-8ejc.onrender.com/'
+  //'https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/'
   
   const { 
     isAuthenticated, 
