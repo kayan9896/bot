@@ -13,7 +13,7 @@ from uuid import uuid4
 import time
 from jose import jwt
 from functools import wraps
-
+import pymongo
 from authlib.integrations.flask_oauth2 import ResourceProtector
 from validator import Auth0JWTBearerTokenValidator
 import stripe
@@ -36,9 +36,14 @@ app.logger.setLevel(logging.ERROR)
 link="https://api.aimlapi.com/chat/completions"
 key=os.getenv('key')
 gookey=os.getenv('gookey')
+audiokey=os.getenv('audiokey')
+
+MONGO_URI = os.environ.get("MONGO_URI")
+client = pymongo.MongoClient(MONGO_URI)
+db = client["your_database_name"]
+subscriptions_collection = db["subscriptions"]
 
 chat_history = {}
-subscriptions = {}
 
 # Helper function to get the user ID from the token
 def get_user_id():
@@ -87,7 +92,8 @@ def get_user_id():
 @require_auth(None)
 def check_subscription():
     user_id = get_user_id()
-    is_subscribed = subscriptions.get(user_id, False)
+    subscription_data = subscriptions_collection.find_one({"user_id": user_id})
+    is_subscribed = subscription_data.get("isSubscribed", False) if subscription_data else False
     return jsonify({"isSubscribed": is_subscribed}) 
 
 # Route to handle payment processing 
@@ -115,9 +121,11 @@ def process_payment():
         l=payment_info['cardNumber'][15]
         
         user_id = get_user_id()
-        if user_id not in subscriptions:
-            subscriptions[user_id]={}
-        subscriptions[user_id]["isSubscribed"] = True
+        subscriptions_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {"user_id": user_id, "isSubscribed": True}},
+            upsert=True
+        )
         return jsonify({"success": True})
     except Exception as e:
         print(e)
@@ -158,7 +166,7 @@ def handle_audio_post():
         
         # Make a POST request to the Speech-to-Text API
         audiourl = f'https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/audio/{filename}'
-        headers = {"Authorization": f'Bearer c5805622b2fe42f1888861484747a6ec',
+        headers = {"Authorization": f'Bearer {audiokey}',
          "Content-Type": "application/json"}
         data={"audio_url": audiourl}
         response = requests.post("https://api.assemblyai.com/v2/transcript",json=data,headers=headers)
@@ -246,7 +254,9 @@ def google():
 @require_auth(None)
 def googleprocess():
     user_id = get_user_id()
-    if not subscriptions.get(user_id, False):
+    subscription_data = subscriptions_collection.find_one({"user_id": user_id})
+    is_subscribed = subscription_data.get("isSubscribed", False) if subscription_data else False
+    if not is_subscribed:
         return jsonify({"error": "Subscription required"}), 403
     user_message = request.json['userMessage']  # Extract the user's message from the request
     print('user_message', user_message)
