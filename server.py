@@ -409,7 +409,7 @@ def handle_prompt():
     conversation_history.append(response)
 
     return response
-
+'''
 import time
 
 def cleanup_chat_history(max_age_in_seconds=3000):  # Cleanup every hour
@@ -422,7 +422,7 @@ def cleanup_chat_history(max_age_in_seconds=3000):  # Cleanup every hour
                 entry for entry in history 
                 if current_time - entry.get('timestamp', 0) < max_age_in_seconds
             ]
-'''
+
 # Start cleanup task in the background
 import threading
 cleanup_thread = threading.Thread(target=cleanup_chat_history)
