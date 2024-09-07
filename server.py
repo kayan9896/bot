@@ -36,6 +36,7 @@ app.logger.setLevel(logging.ERROR)
 link="https://api.aimlapi.com/chat/completions"
 key=os.getenv('key')
 gookey=os.getenv('gookey')
+audiokey=os.getenv('audiokey')
 
 MONGO_URI = os.environ.get("MONGO_URI")
 client = pymongo.MongoClient(MONGO_URI)
@@ -165,7 +166,7 @@ def handle_audio_post():
         
         # Make a POST request to the Speech-to-Text API
         audiourl = f'https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/audio/{filename}'
-        headers = {"Authorization": f'Bearer c5805622b2fe42f1888861484747a6ec',
+        headers = {"Authorization": f'Bearer {audiokey}',
          "Content-Type": "application/json"}
         data={"audio_url": audiourl}
         response = requests.post("https://api.assemblyai.com/v2/transcript",json=data,headers=headers)
