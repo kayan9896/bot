@@ -39,6 +39,7 @@ gookey=os.getenv('gookey')
 audiokey=os.getenv('audiokey')
 stripe.api_key=os.getenv('stripekey')
 webhookey=os.getenv('webhookey')
+print(stripe.api_key,webhookey)
 
 
 MONGO_URI = os.environ.get("MONGO_URI")
