@@ -1,7 +1,7 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
 import Goo from './Goo';
-import { Link, Routes, Route } from 'react-router-dom';
+import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Memochat from './Memochat';
 import Pdf from './Pdf';
 import Cover from './Cover';
@@ -12,8 +12,8 @@ import PaymentModal from './PaymentModal';
 
 function App() {
 
-  let uri='https://bot-8ejc.onrender.com/'
-  //'https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/'
+  let uri=//'https://bot-8ejc.onrender.com/'
+  'https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/'
   
   const { 
     isAuthenticated, 
@@ -47,6 +47,15 @@ function App() {
     fetchSubscriptionStatus();
   }, [isAuthenticated, getAccessTokenSilently]);
   
+  const navigate = useNavigate(); // Initialize useNavigate hook
+  const location = useLocation(); // Initialize useLocation hook
+
+  useEffect(() => {
+      // Check authentication status and redirect on component mount
+      if (!isAuthenticated && location.pathname !== '/') {
+          navigate('/'); // Redirect to home if not authenticated and not on home
+      } 
+  }, [isAuthenticated, location.pathname, navigate]); // Run effect when isAuthenticated or pathname changes
 
   const handleGooClick = () => {
     if (!isAuthenticated) {
