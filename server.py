@@ -2,7 +2,7 @@ import logging
 import os
 import re
 import json
-from flask import Flask, render_template, request, jsonify, session, send_file
+from flask import Flask, render_template, request, jsonify, session, send_file, redirect
 from flask_cors import CORS
 #import worker  # Import the worker module
 #import llm
@@ -19,9 +19,6 @@ from authlib.integrations.flask_oauth2 import ResourceProtector
 from validator import Auth0JWTBearerTokenValidator
 import stripe
 
-stripe.api_key = "YOUR_STRIPE_SECRET_KEY"
-
-
 require_auth = ResourceProtector()
 validator = Auth0JWTBearerTokenValidator(
     "dev-4u2fhsz3qpodveaq.us.auth0.com",
@@ -32,12 +29,17 @@ require_auth.register_token_validator(validator)
 # Initialize Flask app and CORS
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
+
 app.logger.setLevel(logging.ERROR)
 
 link="https://api.aimlapi.com/chat/completions"
+YOUR_DOMAIN = 'https://bot-1-anvh.onrender.com'#'https://legendary-fishstick-67w6q66jwxgh4q49-3000.app.github.dev/goo'
 key=os.getenv('key')
 gookey=os.getenv('gookey')
 audiokey=os.getenv('audiokey')
+stripe.api_key=os.getenv('stripekey')
+webhookey=os.getenv('webhookey')
+
 
 MONGO_URI = os.environ.get("MONGO_URI")
 client = pymongo.MongoClient(MONGO_URI)
@@ -102,35 +104,64 @@ def check_subscription():
 @require_auth(None)
 def process_payment():
     # Get the payment information from the request body
-    payment_info = request.get_json()
-    
-    # Validate the presence of necessary fields
-    required_fields = ['cardNumber', 'expiryDate', 'cvv']
-    if not all(field in payment_info for field in required_fields):
-        return jsonify({"success": False, "error": "Missing required fields"}), 400
-
-    # Format the expiry date for Stripe (Stripe expects it in separate month and year)
-    month, year = map(int, payment_info['expiryDate'].split('/'))
-    card_info = {
-        "number": payment_info['cardNumber'],
-        "exp_month": month,
-        "exp_year": year,
-        "cvc": payment_info['cvv'],
-    }
     try:
-        # Assuming payment is successful
-        l=payment_info['cardNumber'][15]
-        
-        user_id = get_user_id()
-        subscriptions_collection.update_one(
-            {"user_id": user_id},
-            {"$set": {"user_id": user_id, "isSubscribed": True}},
-            upsert=True
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+                    'price': 'price_1PyFU1RxAddygyCoFwDjTDkF',
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            client_reference_id = get_user_id(),
+            success_url=YOUR_DOMAIN + '?success=true',
+            cancel_url=YOUR_DOMAIN + '?canceled=true',
         )
-        return jsonify({"success": True})
     except Exception as e:
-        print(e)
-        return jsonify({"success": False, "error": str(e)}), 400
+        return jsonify(error=str(e)), 500
+
+    return jsonify(redirect_url=checkout_session.url), 200
+
+import stripe
+from flask import request, jsonify
+
+@app.route("/stripe-webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get("Stripe-Signature")
+    endpoint_secret = webhookey 
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        return jsonify({"error": str(e)}), 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return jsonify({"error": str(e)}), 400
+
+    # Handle the checkout session completed event
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        user_id = session.get("client_reference_id") 
+        try:
+            # Update user's subscription status in the database
+            subscriptions_collection.update_one(
+                {"user_id": user_id},
+                {"$set": {"user_id": user_id, "isSubscribed": True}},
+                upsert=True
+            )
+            print(f"User {user_id} subscription updated.")
+        except Exception as e:
+            print(f"Error updating subscription for user {user_id}: {e}")
+            return jsonify({"error": str(e)}), 500
+
+    return jsonify({"status": "success"}), 200
+
+
 
 # Define the route for the index page
 @app.route('/', methods=['GET'])
@@ -263,7 +294,7 @@ def googleprocess():
     print('user_message', user_message)
     search=requests.get(f'https://serpapi.com/search.json?engine=google&q={user_message}&api_key={gookey}')
     res=search.content.decode('utf-8')
-    print(res)
+    
     redict=json.loads(res)
     unwant=['search_metadata','search_parameters','search_information','pagination','serpapi_pagination']
     for k in unwant:
@@ -284,6 +315,7 @@ def googleprocess():
             return data
     goo=remove_urls(redict)
     goosearch=json.dumps(goo)
+    print(goosearch)
 
     headers = {"Authorization": f'Bearer {key}',
          "Content-Type": "application/json"}
