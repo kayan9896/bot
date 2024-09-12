@@ -18,13 +18,7 @@ import pymongo
 from authlib.integrations.flask_oauth2 import ResourceProtector
 from validator import Auth0JWTBearerTokenValidator
 import stripe
-
-require_auth = ResourceProtector()
-validator = Auth0JWTBearerTokenValidator(
-    "dev-4u2fhsz3qpodveaq.us.auth0.com",
-    "https://dev-4u2fhsz3qpodveaq.us.auth0.com/api/v2/"
-)
-require_auth.register_token_validator(validator)
+load_dotenv()
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
@@ -37,10 +31,18 @@ YOUR_DOMAIN = 'https://bot-1-anvh.onrender.com'#'https://legendary-fishstick-67w
 key=os.getenv('key')
 gookey=os.getenv('gookey')
 audiokey=os.getenv('audiokey')
-stripe.api_key='sk_test_51PyEfnRxAddygyCoeRJmir6vVZ1hgh3n86YGnvBqpSWe1F6lfGDlHI4qW6Ozw4icH5k98ou0YratHTqkCQUOBZJi00lW2YGbBH'
+stripe.api_key=os.getenv('stripekey')
 webhookey=os.getenv('webhookey')
+AUTH0_DOMAIN=os.getenv('AUTH0_DOMAIN')
+API_IDENTIFIER=os.getenv('API_IDENTIFIER')
 print(stripe.api_key,webhookey)
 
+require_auth = ResourceProtector()
+validator = Auth0JWTBearerTokenValidator(
+    AUTH0_DOMAIN,
+    API_IDENTIFIER
+)
+require_auth.register_token_validator(validator)
 
 MONGO_URI = os.environ.get("MONGO_URI")
 client = pymongo.MongoClient(MONGO_URI)
@@ -66,7 +68,7 @@ def get_user_id():
 
     token = parts[1]
     unverified_header = jwt.get_unverified_header(token)
-    jsonurl = requests.get(f"https://dev-4u2fhsz3qpodveaq.us.auth0.com/.well-known/jwks.json")
+    jsonurl = requests.get(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json")
     jwks = jsonurl.json()
     rsa_key = {}
     for key in jwks["keys"]:
@@ -83,8 +85,8 @@ def get_user_id():
             token,
             rsa_key,
             algorithms="RS256",
-            audience="https://dev-4u2fhsz3qpodveaq.us.auth0.com/api/v2/",
-            issuer=f"https://dev-4u2fhsz3qpodveaq.us.auth0.com/"
+            audience=API_IDENTIFIER,
+            issuer=f"https://{AUTH0_DOMAIN}/"
         )
         
         
