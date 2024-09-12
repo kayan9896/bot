@@ -52,7 +52,7 @@ function App() {
 
   useEffect(() => {
       // Check authentication status and redirect on component mount
-      if (!isAuthenticated && location.pathname == '/goo') {
+      if (!isAuthenticated && location.pathname === '/goo') {
           navigate('/'); // Redirect to home if not authenticated and not on home
       } 
   }, [isAuthenticated, location.pathname, navigate]); // Run effect when isAuthenticated or pathname changes
