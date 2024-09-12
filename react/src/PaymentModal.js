@@ -3,7 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 
 function PaymentModal({ onSuccess, onFailure, link }) {
   const ProductDisplay = () => (
-    <section>
+    <section style={{padding:'20%'}}>
       <div className="product">
         <div className="description">
         <h3>Lifetime subscription</h3>
