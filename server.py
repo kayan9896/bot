@@ -266,12 +266,15 @@ def historicalprocess():
          "Content-Type": "application/json"}
     data={"model": "gpt-4o",
     "messages": chat_history[user_id][-11:]}
+    print(data)
     response = requests.post("https://api.aimlapi.com/chat/completions", headers=headers, json=data)
     res=response.content.decode('utf-8')
     print(res)
     redict=json.loads(res)
     
     bot_response=redict['choices'][0]['message']
+    if 'refusal' in bot_response:
+        del bot_response['refusal']
     chat_history[user_id].append(bot_response)
     print(chat_history)
     
