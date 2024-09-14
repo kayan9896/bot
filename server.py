@@ -35,7 +35,7 @@ stripe.api_key=os.getenv('stripekey')
 webhookey=os.getenv('webhookey')
 AUTH0_DOMAIN=os.getenv('AUTH0_DOMAIN')
 API_IDENTIFIER=os.getenv('API_IDENTIFIER')
-print(stripe.api_key,webhookey)
+print(API_IDENTIFIER,stripe.api_key,webhookey,AUTH0_DOMAIN,key)
 
 require_auth = ResourceProtector()
 validator = Auth0JWTBearerTokenValidator(
