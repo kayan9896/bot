@@ -31,11 +31,11 @@ YOUR_DOMAIN = 'https://bot-1-anvh.onrender.com'#'https://legendary-fishstick-67w
 key=os.getenv('key')
 gookey=os.getenv('gookey')
 audiokey=os.getenv('audiokey')
-stripe.api_key=os.getenv('stripekey')
+api_key=os.getenv('stripekey')
 webhookey=os.getenv('webhookey')
 AUTH0_DOMAIN=os.getenv('AUTH0_DOMAIN')
 API_IDENTIFIER=os.getenv('API_IDENTIFIER')
-print(API_IDENTIFIER,stripe.api_key,webhookey,AUTH0_DOMAIN,key)
+print(API_IDENTIFIER,api_key,webhookey,AUTH0_DOMAIN,key)
 
 require_auth = ResourceProtector()
 validator = Auth0JWTBearerTokenValidator(
