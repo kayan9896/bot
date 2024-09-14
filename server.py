@@ -31,8 +31,8 @@ YOUR_DOMAIN = 'https://bot-1-anvh.onrender.com'#'https://legendary-fishstick-67w
 key=os.getenv('key')
 gookey=os.getenv('gookey')
 audiokey=os.getenv('audiokey')
-stripe.api_key='sk_test_51PyEfnRxAddygyCoeRJmir6vVZ1hgh3n86YGnvBqpSWe1F6lfGDlHI4qW6Ozw4icH5k98ou0YratHTqkCQUOBZJi00lW2YGbBH'
-webhookey='whsec_accA784ggETL24u1ialIJGdUxmPMydwP'
+stripe.api_key=os.getenv('stripekey')
+webhookey=os.getenv('webhookey')
 AUTH0_DOMAIN=os.getenv('AUTH0_DOMAIN')
 API_IDENTIFIER=os.getenv('API_IDENTIFIER')
 print(stripe.api_key,webhookey)
@@ -267,7 +267,7 @@ def historicalprocess():
     data={"model": "gpt-4o",
     "messages": chat_history[user_id][-11:]}
     print(data)
-    response = requests.post("https://api.aimlapi.com/chat/completions", headers=headers, json=data)
+    response = requests.post(link, headers=headers, json=data)
     res=response.content.decode('utf-8')
     print(res)
     redict=json.loads(res)
