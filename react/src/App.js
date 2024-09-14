@@ -12,7 +12,7 @@ import PaymentModal from './PaymentModal';
 
 function App() {
 
-  let uri='https://bot-2-4qnh.onrender.com/'
+  let uri='https://bot-kjjm.onrender.com/'
   //'https://legendary-fishstick-67w6q66jwxgh4q49-8000.app.github.dev/'
   
   const { 
