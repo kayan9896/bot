@@ -149,7 +149,7 @@ function App() {
                   )
                 } 
               />
-              <Route path="historical" element={<Goo link={uri} />} />
+              <Route path="historical" element={<Memochat link={uri} />} />
               <Route path="/" element={<Pdf link={uri} />} />
               <Route path="/cover" element={<Cover />} />
               <Route path="/code" element={<Code />} />
