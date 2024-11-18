@@ -2,138 +2,90 @@ import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 
 function PaymentModal({ onSuccess, onFailure, link }) {
-  const ProductDisplay = () => (
-    <section style={{padding:'20%'}}>
-      <div className="product">
-        <div className="description">
-        <h3>Lifetime subscription</h3>
-        <h5>$20.00</h5>
-        </div>
-      </div>
-      <button onClick={handlePaymentSubmit}>Subscribe</button>
-    </section>
-  );
+    const { getAccessTokenSilently } = useAuth0();
+
+    const ProductDisplay = () => (
+        <section className="flex flex-col items-center justify-center min-h-[60vh] p-8">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+                <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                        Lifetime subscription
+                    </h3>
+                    <h5 className="text-xl text-gray-600">$20.00</h5>
+                </div>
+                <button 
+                    onClick={handlePaymentSubmit}
+                    className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg
+                             hover:bg-blue-600 transition-colors duration-200
+                             font-medium text-lg focus:outline-none focus:ring-2
+                             focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    Subscribe
+                </button>
+            </div>
+        </section>
+    );
   
-  const Message = ({ message }) => (
-    <section>
-      <p>{message}</p>
-    </section>
-  );
-  
-  // const [paymentInfo, setPaymentInfo] = useState({
-  //   cardNumber: '',
-  //   expiryDate: '',
-  //   cvv: ''
-  // });
-  const { getAccessTokenSilently } = useAuth0();
+    const Message = ({ message }) => (
+        <section className="flex items-center justify-center min-h-[60vh]">
+            <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+                <p className="text-center text-gray-700 text-lg">
+                    {message}
+                </p>
+            </div>
+        </section>
+    );
 
-  // // Function to handle numeric input only
-  // const handleNumericInput = (e) => {
-  //   const value = e.target.value.replace(/\D/g, '');
-  //   e.target.value = value;
-  // };
+    const processPayment = async () => {
+        try {
+            const token = await getAccessTokenSilently();
+            const response = await fetch(`${link}process-payment`, {
+                method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                window.location.href = data.redirect_url;
+            } else {
+                const errorData = await response.json();
+                console.error("Error processing payment:", errorData.error);
+            }
+        } catch (error) {
+            console.error("Error processing payment:", error);
+        }
+    };
 
-  // // Function to format and set expiry date
-  // const handleExpiryDateInput = (e) => {
-  //   let value = e.target.value.replace(/\D/g, '');
-  //   if (value.length > 2 && value.length <= 4) {
-  //     value = value.slice(0, 2) + '/' + value.slice(2, 4);
-  //   }
-  //   setPaymentInfo({...paymentInfo, expiryDate: value});
-  // };
+    const handlePaymentSubmit = async () => {
+        processPayment();
+    };
 
-  const processPayment = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`${link}process-payment`, {
-        method: 'POST',
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        window.location.href = data.redirect_url;
-      } else {
-        const errorData = await response.json();
-        console.error("Error processing payment:", errorData.error);
-      }
-    } catch (error) {
-      console.error("Error processing payment:", error);
-    }
-  };
+    const [message, setMessage] = useState("");
 
-  const handlePaymentSubmit = async () => {
-    processPayment();
-    
-  };
+    useEffect(() => {
+        const query = new URLSearchParams(window.location.search);
 
-  // return (
-  //   <div className="modal">
-  //     <h2>Subscribe to access Goo</h2>
-  //     <form onSubmit={(e) => e.preventDefault()}>
-  //       <input
-  //         type="text"
-  //         placeholder="Card Number"
-  //         value={paymentInfo.cardNumber}
-  //         onChange={(e) => {
-  //           handleNumericInput(e);
-  //           setPaymentInfo({ ...paymentInfo, cardNumber: e.target.value });
-  //         }}
-  //         maxLength="16"
-  //       />
-  //       <div style={{display: 'flex'}}>
-  //         <input
-  //           type="text"
-  //           placeholder="MM/YY"
-  //           value={paymentInfo.expiryDate}
-  //           onChange={handleExpiryDateInput}
-  //           maxLength="5"
-  //           style={{flex: 1, marginRight: '5px'}}
-  //         />
-  //         <input
-  //           type="text"
-  //           placeholder="CVV"
-  //           value={paymentInfo.cvv}
-  //           onChange={(e) => {
-  //             handleNumericInput(e);
-  //             setPaymentInfo({ ...paymentInfo, cvv: e.target.value });
-  //           }}
-  //           maxLength="4" // Typically CVV can be 3 or 4 digits
-  //           style={{flex: 1}}
-  //         />
-  //       </div>
-  //     </form>
-  //     <button onClick={handlePaymentSubmit}>Subscribe</button>
-  //     <button onClick={onFailure}>Cancel</button>
-  //   </div>
-  // );
-  const [message, setMessage] = useState("");
+        if (query.get("success")) {
+            setMessage("Order placed! You will receive an email confirmation.");
+            onSuccess();
+        }
 
-  useEffect(() => {
-    // Check to see if this is a redirect back from Checkout
-    const query = new URLSearchParams(window.location.search);
+        if (query.get("canceled")) {
+            setMessage(
+                "Order canceled -- continue to shop around and checkout when you're ready."
+            );
+            onFailure();
+        }
+    }, [onSuccess, onFailure]);
 
-    if (query.get("success")) {
-      setMessage("Order placed! You will receive an email confirmation.");
-      onSuccess();
-    }
-
-    if (query.get("canceled")) {
-      setMessage(
-        "Order canceled -- continue to shop around and checkout when you're ready."
-      );
-      onFailure();
-    }
-  }, []);
-
-  return message ? (
-    <Message message={message} />
-  ) : (
-    <ProductDisplay />
-  );
+    return message ? (
+        <Message message={message} />
+    ) : (
+        <ProductDisplay />
+    );
 }
 
 export default PaymentModal;

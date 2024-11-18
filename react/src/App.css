@@ -1,105 +1,8 @@
-.App {
-  text-align: center;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-body{
-  background-color: #282c34;
-}
-.App-header {
-  background-color: #282c34;
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  font-size: 3vmin;
-  color: white;
-}
-
-
-#chat-window {
-  position: relative;
-  height: 85%;
-  width: 100%;
-  overflow: auto;
-  padding: 0 4%;
-}
-
-.message-line {
-  padding-bottom: 8px;
-  width: 70%;
-  word-break: break-word;
-  display: flex;
-}
-
-.message-line.my-text {
-  flex-direction: row-reverse;
-  width: 100%;
-}
-
-.message-box {
-  font-size: 16px;
-  padding: 12px;
-  border-radius: 15px;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background-color: #efefef;
-  min-width: 26px;
-  border-top-left-radius: 0;
-  word-wrap: break-word;
-  text-align: left;
-  flex-grow: 0;
-  color: #000;
-}
-
-.message-box.my-text {
-  font-size: 16px;
-  background-color: #e7f9d8;
-  border-radius: 15px;
-  border-top-right-radius: 0;
-}
-
-#in {
-  
-  width: 90%;
-  height: 80%;
-  font-size: 16px;
-  box-sizing: border-box;
-  border: none;
-  padding: 0 0 0 12px;
-  border-radius: 40px 0 0 40px;
-  background-color: white;
-}
-
-#submit {
-  width: 10%;
-  font-size: 16px;
-  box-sizing: border-box;
-  border: none;
-  background-color: white;
-  border-radius: 0 40px 40px 0;
-  border-left: #000 1px solid;
-  height: 80%;
-  cursor: pointer;
-}
-
-.btn {
-  width: 60%;
-  margin: 14px;
-  padding: 5px;
-  border-radius: 15px;
-  display: inline-block;
-  position: relative;
-  background-color: #36485c;
-  min-width: 26px;
-  word-wrap: break-word;
-  text-align: center;
-  flex-grow: 0;
-  color: #fff;
-  text-decoration: none;
-}
-
+/* Custom styles that can't be achieved with Tailwind */
 input[type=file]::file-selector-button {
   border: 2px solid transparent;
   padding: 1% 40%;
@@ -109,27 +12,12 @@ input[type=file]::file-selector-button {
   cursor: pointer;
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Custom component classes */
+@layer components {
+  .sidebar-link {
+    @apply w-[60%] my-3.5 px-5 py-1.5 rounded-2xl bg-custom-blue 
+           hover:bg-opacity-80 transition-colors text-white text-center 
+           no-underline cursor-pointer;
+  }
 }
 
-.modal {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  padding: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-}
-
-.modal-close {
-  float: right;
-  cursor: pointer;
-}

@@ -1,5 +1,4 @@
 import React from 'react'
-import './App.css';
 import 'katex/dist/katex.min.css';
 import { BlockMath, InlineMath } from 'react-katex';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -12,11 +11,8 @@ export default function Displaytxt({ txt, bot }) {
   let isCodeBlock = false;
 
   const renderContent = (content) => {
-    // Split the content by line breaks
     const lines = content.split('\n');
     return lines.map((line, index) => {
-      // Split line by inline math
-      console.log(line)
       const inlineParts = line.split(/(\\\(|\\\))/);
       let skip=false;
       return (
@@ -41,8 +37,22 @@ export default function Displaytxt({ txt, bot }) {
   };
 
   return (
-    <div className={bot ? 'message-line' : 'message-line my-text'}>
-      <div className={bot ? 'message-box' : 'message-box my-text'}>
+    <div className={`pb-2 w-[70%] break-words flex ${bot ? '' : 'flex-row-reverse w-full'}`}>
+      <div className={`
+        text-base 
+        p-3 
+        rounded-2xl 
+        flex 
+        flex-col 
+        relative 
+        min-w-[26px] 
+        text-left 
+        flex-grow-0 
+        text-black
+        ${bot ? 
+          'bg-gray-100 rounded-tl-none' : 
+          'bg-[#e7f9d8] rounded-tr-none'}
+      `}>
         {a.map(function (part, index) {
           if (skipNext) {
             skipNext = false;
@@ -57,9 +67,11 @@ export default function Displaytxt({ txt, bot }) {
             return null;
           } else if (isCodeBlock) {
             return (
-              <SyntaxHighlighter key={index} language="python" style={coy}>
-                {part}
-              </SyntaxHighlighter>
+              <div className="rounded-lg overflow-hidden">
+                <SyntaxHighlighter key={index} language="python" style={coy}>
+                  {part}
+                </SyntaxHighlighter>
+              </div>
             );
           } else if (part !== '\\)' && part !== '\\]') {
             return renderContent(part);

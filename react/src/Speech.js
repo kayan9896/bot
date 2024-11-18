@@ -41,56 +41,56 @@ const Speech = () => {
   };
 
   return (
-      <div style={{ display: "flex", flexDirection:"column", alignItems: "center",width:'74%',height:'100%' }}>
+    <div className="flex flex-col items-center w-[74%] h-full">
         <ReactMic
-          record={recording}
-          className="sound-wave"
-          onStop={onStopRecording}
-          strokeColor="#000000"
-          backgroundColor="#FF4081"
-          mimeType="audio/wav"
-          style={{ marginBottom: "10px" }}
+            record={recording}
+            className="sound-wave"
+            onStop={onStopRecording}
+            strokeColor="#000000"
+            backgroundColor="#FF4081"
+            mimeType="audio/wav"
+            style={{ marginBottom: "10px" }}
         />
-        <div style={{display: "flex", flexDirection:"row",margin:'5px'}}>
-        <button
-          onClick={recording ? () => onStopRecording(blob) : onStartRecording}
-          style={{
-            backgroundColor: recording ? "blue" : "gray",
-            color: "white",
-            padding: "10px 20px",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          {recording ? "Stop Recording" : "Start Recording"}
-        </button>
+        <div className="flex flex-row m-5">
+            <button
+                onClick={recording ? () => onStopRecording(blob) : onStartRecording}
+                className={`
+                    px-5 py-2.5 
+                    border-none rounded-lg 
+                    cursor-pointer
+                    text-white
+                    transition-colors
+                    ${recording ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500 hover:bg-gray-600'}
+                `}
+            >
+                {recording ? "Stop Recording" : "Start Recording"}
+            </button>
+            {audioURL && (
+                <button
+                    onClick={handleUpload}
+                    className="
+                        px-5 py-2.5 
+                        border-none rounded-lg 
+                        cursor-pointer
+                        bg-green-500 hover:bg-green-600
+                        text-white
+                        ml-2.5
+                        transition-colors
+                    "
+                >
+                    Upload
+                </button>
+            )}
+        </div>
+
         {audioURL && (
-          <button
-            onClick={handleUpload}
-            style={{
-              padding: "10px 20px",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              backgroundColor: "#4CAF50",
-              color: "white",
-              marginLeft:'10px'
-            }}
-          >
-            Upload
-          </button>
+            <div className="mb-2.5">
+                <audio controls src={audioURL} className="mb-2.5"></audio>
+            </div>
         )}
-        </div>
-    
-      {audioURL && (
-        <div>
-          <audio controls src={audioURL} style={{ marginBottom: "10px" }}></audio>
-        </div>
-      )}
-      <p style={{textAlign:'left'}}>{tx}</p>
+        <p className="text-left">{tx}</p>
     </div>
-  );
+);
 };
 
 export default Speech;
